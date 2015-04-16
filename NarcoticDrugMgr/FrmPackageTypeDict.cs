@@ -7,12 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using SNDMS.DAL;
+using ESS;
 
 namespace SNDMS.NarcoticDrugMgr
 {
     public partial class FrmPackageTypeDict : Form
     {
-        DAL.PackageTypeDAL packageTypeDAL = new PackageTypeDAL();
+        DAL.PackageTypeDAL dalPackageType = new PackageTypeDAL();
+        DAL.PackageTypeDrugDAL dalPackageTypeDrug = new PackageTypeDrugDAL();
 
         public FrmPackageTypeDict()
         {
@@ -23,7 +25,11 @@ namespace SNDMS.NarcoticDrugMgr
         {
             //绑定现有的套餐箱列表
             BindPackageType();
-
+            //输入法
+            if (InputMethod.Input == null)
+            {
+                InputMethod.Input = new InputMethodFrm();
+            }
         }
         /// <summary>
         /// 绑定现有的套餐箱列表
@@ -32,7 +38,7 @@ namespace SNDMS.NarcoticDrugMgr
         {
             tvPackageType.Nodes.Clear();
 
-            DataSet dsPackageType = packageTypeDAL.GetList("");
+            DataSet dsPackageType = dalPackageType.GetList("");
             if (dsPackageType != null && dsPackageType.Tables[0].Rows.Count > 0)
             {
                 for (int i = 0; i < dsPackageType.Tables[0].Rows.Count; i++)
@@ -47,6 +53,18 @@ namespace SNDMS.NarcoticDrugMgr
             }
         }
 
+        /// <summary>
+        /// 绑定套餐箱详细
+        /// </summary>
+        private void BindPackageDrugList(string packageTypeNo)
+        {
+
+            DataSet dsPackageDrug = dalPackageType.GetListWithDrugName(" packageTypeNo =" + packageTypeNo);
+            if (dsPackageDrug != null && dsPackageDrug.Tables[0].Rows.Count > 0)
+            {
+                dgvPackageDrugList.DataSource = dsPackageDrug.Tables[0].DefaultView;
+            }
+        }
 
         /// <summary>
         /// 增加
@@ -65,7 +83,7 @@ namespace SNDMS.NarcoticDrugMgr
             //添加
             SNDMS.Model.PackageType model = new Model.PackageType();
             model.PackageTypeName = txtPackageTypeName.Text.Trim();
-            packageTypeDAL.Add(model);
+            dalPackageType.Add(model);
             //刷新绑定
             BindPackageType();
 
@@ -82,7 +100,7 @@ namespace SNDMS.NarcoticDrugMgr
             if (tvPackageType.SelectedNode != null)
             {
                 int typeNo = int.Parse(tvPackageType.SelectedNode.Tag.ToString());
-                packageTypeDAL.Delete(typeNo);
+                dalPackageType.Delete(typeNo);
                 //刷新绑定
                 BindPackageType();
             }
@@ -92,10 +110,48 @@ namespace SNDMS.NarcoticDrugMgr
         {
             if (tvPackageType.SelectedNode != null)
             {
-                lblPackageTypeSelected.Text = tvPackageType.SelectedNode.Text;
+                lblPackageTypeSelected.Text = tvPackageType.SelectedNode.Text;                
+                string packageTypeNo = tvPackageType.SelectedNode.Tag.ToString();
+
+                BindPackageDrugList(packageTypeNo);
+            }
+        }
+
+        
+
+
+        private void txtDrugName_KeyDown(object sender, KeyEventArgs e)
+        {
+            string key = "";
+            //只传 字母和数字
+            if (e.KeyValue >= 48 && e.KeyValue <= 105)
+            {
+                key = e.KeyCode.ToString();
+
+                InputMethod.Input.ItemSelected = drugInputed;
+                Control ctrlEdit = sender as Control;
+                InputMethod.Input.InputBegin(ctrlEdit, "药品字典表", key);
             }
 
+        }
+        private void drugInputed(object sender, InputResult e)
+        {
+            TextBox tb = sender as TextBox;
+
+            txtDrugName.Text = e.ItemName.Trim();
+            txtDrugID.Text = e.ItemCode.Trim();
+            txtManufactory.Text = e.Performed_dept.Trim();
+            txtSpec.Text = e.ItemSpec.Trim();
+
+            txtCount.Focus();
+            txtCount.Select();
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
 
         }
+
+      
     }
 }

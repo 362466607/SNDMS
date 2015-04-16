@@ -1,31 +1,62 @@
 ﻿using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Text;
-using System.Data.SqlClient;
-using DBUtility;//Please add references
+using DBUtility;
+using System.Data;//Please add references
 
 namespace SNDMS.DAL
 {
     /// <summary>
-    /// 数据访问类:PackageType
+    /// 数据访问类:PackageTypeDrug
     /// </summary>
-    public partial  class PackageTypeDAL
+    public partial class PackageTypeDrugDAL
     {
-        public PackageTypeDAL()
+        public PackageTypeDrugDAL()
         { }
         #region  Method
 
         /// <summary>
         /// 是否存在该记录
         /// </summary>
-        public bool Exists(int PackageTypeNo)
+        //public bool Exists(int PackageTypeNo, int DrugNo)
+        //{
+        //    StringBuilder strSql = new StringBuilder();
+        //    strSql.Append("select count(1) from PackageTypeDrug");
+        //    strSql.Append(" where PackageTypeNo=" + PackageTypeNo + " and DrugNo=" + DrugNo + " ");
+        //    return SqlHelper.Exists(strSql.ToString());
+        //}
+
+        /// <summary>
+        /// 增加一条数据
+        /// </summary>
+        public bool Add(SNDMS.Model.PackageTypeDrug model)
         {
             StringBuilder strSql = new StringBuilder();
-            strSql.Append("select count(1) from PackageType");
-            strSql.Append(" where PackageTypeNo=" + PackageTypeNo + " ");
-            object obj= SqlHelper.ExecuteScalar(strSql.ToString());
-
-            if (obj != null)
+            StringBuilder strSql1 = new StringBuilder();
+            StringBuilder strSql2 = new StringBuilder();
+            if (model.PackageTypeNo != null)
+            {
+                strSql1.Append("PackageTypeNo,");
+                strSql2.Append("" + model.PackageTypeNo + ",");
+            }
+            if (model.DrugNo != null)
+            {
+                strSql1.Append("DrugNo,");
+                strSql2.Append("" + model.DrugNo + ",");
+            }
+            if (model.Count != null)
+            {
+                strSql1.Append("Count,");
+                strSql2.Append("" + model.Count + ",");
+            }
+            strSql.Append("insert into PackageTypeDrug(");
+            strSql.Append(strSql1.ToString().Remove(strSql1.Length - 1));
+            strSql.Append(")");
+            strSql.Append(" values (");
+            strSql.Append(strSql2.ToString().Remove(strSql2.Length - 1));
+            strSql.Append(")");
+            int rows = SqlHelper.ExecuteNonQuery(strSql.ToString());
+            if (rows > 0)
             {
                 return true;
             }
@@ -33,58 +64,26 @@ namespace SNDMS.DAL
             {
                 return false;
             }
-
-        }
-
-        /// <summary>
-        /// 增加一条数据
-        /// </summary>
-        public int Add(SNDMS.Model.PackageType model)
-        {
-            StringBuilder strSql = new StringBuilder();
-            StringBuilder strSql1 = new StringBuilder();
-            StringBuilder strSql2 = new StringBuilder();
-            if (model.PackageTypeName != null)
-            {
-                strSql1.Append("PackageTypeName,");
-                strSql2.Append("'" + model.PackageTypeName + "',");
-            }
-            strSql.Append("insert into PackageType(");
-            strSql.Append(strSql1.ToString().Remove(strSql1.Length - 1));
-            strSql.Append(")");
-            strSql.Append(" values (");
-            strSql.Append(strSql2.ToString().Remove(strSql2.Length - 1));
-            strSql.Append(")");
-            strSql.Append(";select @@IDENTITY");
-            object obj = SqlHelper.ExecuteScalar(strSql.ToString());
-            if (obj == null)
-            {
-                return 0;
-            }
-            else
-            {
-                return Convert.ToInt32(obj);
-            }
         }
 
         /// <summary>
         /// 更新一条数据
         /// </summary>
-        public bool Update(SNDMS.Model.PackageType model)
+        public bool Update(SNDMS.Model.PackageTypeDrug model)
         {
             StringBuilder strSql = new StringBuilder();
-            strSql.Append("update PackageType set ");
-            if (model.PackageTypeName != null)
+            strSql.Append("update PackageTypeDrug set ");
+            if (model.Count != null)
             {
-                strSql.Append("PackageTypeName='" + model.PackageTypeName + "',");
+                strSql.Append("Count=" + model.Count + ",");
             }
             else
             {
-                strSql.Append("PackageTypeName= null ,");
+                strSql.Append("Count= null ,");
             }
             int n = strSql.ToString().LastIndexOf(",");
             strSql.Remove(n, 1);
-            strSql.Append(" where PackageTypeNo=" + model.PackageTypeNo + "");
+            strSql.Append(" where PackageTypeNo=" + model.PackageTypeNo + " and DrugNo=" + model.DrugNo + " ");
             int rowsAffected = SqlHelper.ExecuteNonQuery(strSql.ToString());
             if (rowsAffected > 0)
             {
@@ -99,11 +98,11 @@ namespace SNDMS.DAL
         /// <summary>
         /// 删除一条数据
         /// </summary>
-        public bool Delete(int PackageTypeNo)
+        public bool Delete(int PackageTypeNo, int DrugNo)
         {
             StringBuilder strSql = new StringBuilder();
-            strSql.Append("delete from PackageType ");
-            strSql.Append(" where PackageTypeNo=" + PackageTypeNo + "");
+            strSql.Append("delete from PackageTypeDrug ");
+            strSql.Append(" where PackageTypeNo=" + PackageTypeNo + " and DrugNo=" + DrugNo + " ");
             int rowsAffected = SqlHelper.ExecuteNonQuery(strSql.ToString());
             if (rowsAffected > 0)
             {
@@ -113,37 +112,19 @@ namespace SNDMS.DAL
             {
                 return false;
             }
-        }		/// <summary>
-        /// 批量删除数据
-        /// </summary>
-        public bool DeleteList(string PackageTypeNolist)
-        {
-            StringBuilder strSql = new StringBuilder();
-            strSql.Append("delete from PackageType ");
-            strSql.Append(" where PackageTypeNo in (" + PackageTypeNolist + ")  ");
-            int rows = SqlHelper.ExecuteNonQuery(strSql.ToString());
-            if (rows > 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
-
 
         /// <summary>
         /// 得到一个对象实体
         /// </summary>
-        public SNDMS.Model.PackageType GetModel(int PackageTypeNo)
+        public SNDMS.Model.PackageTypeDrug GetModel(int PackageTypeNo, int DrugNo)
         {
             StringBuilder strSql = new StringBuilder();
             strSql.Append("select  top 1  ");
-            strSql.Append(" PackageTypeNo,PackageTypeName ");
-            strSql.Append(" from PackageType ");
-            strSql.Append(" where PackageTypeNo=" + PackageTypeNo + "");
-            SNDMS.Model.PackageType model = new SNDMS.Model.PackageType();
+            strSql.Append(" PackageTypeNo,DrugNo,Count ");
+            strSql.Append(" from PackageTypeDrug ");
+            strSql.Append(" where PackageTypeNo=" + PackageTypeNo + " and DrugNo=" + DrugNo + " ");
+            SNDMS.Model.PackageTypeDrug model = new SNDMS.Model.PackageTypeDrug();
             DataSet ds = SqlHelper.ExecuteDataset(strSql.ToString());
             if (ds.Tables[0].Rows.Count > 0)
             {
@@ -151,9 +132,13 @@ namespace SNDMS.DAL
                 {
                     model.PackageTypeNo = int.Parse(ds.Tables[0].Rows[0]["PackageTypeNo"].ToString());
                 }
-                if (ds.Tables[0].Rows[0]["PackageTypeName"] != null && ds.Tables[0].Rows[0]["PackageTypeName"].ToString() != "")
+                if (ds.Tables[0].Rows[0]["DrugNo"] != null && ds.Tables[0].Rows[0]["DrugNo"].ToString() != "")
                 {
-                    model.PackageTypeName = ds.Tables[0].Rows[0]["PackageTypeName"].ToString();
+                    model.DrugNo = int.Parse(ds.Tables[0].Rows[0]["DrugNo"].ToString());
+                }
+                if (ds.Tables[0].Rows[0]["Count"] != null && ds.Tables[0].Rows[0]["Count"].ToString() != "")
+                {
+                    model.Count = int.Parse(ds.Tables[0].Rows[0]["Count"].ToString());
                 }
                 return model;
             }
@@ -162,37 +147,20 @@ namespace SNDMS.DAL
                 return null;
             }
         }
-
         /// <summary>
         /// 获得数据列表
         /// </summary>
         public DataSet GetList(string strWhere)
         {
             StringBuilder strSql = new StringBuilder();
-            strSql.Append("select PackageTypeNo,PackageTypeName ");
-            strSql.Append(" FROM PackageType ");
+            strSql.Append("select PackageTypeNo,DrugNo,Count ");
+            strSql.Append(" FROM PackageTypeDrug ");
             if (strWhere.Trim() != "")
             {
                 strSql.Append(" where " + strWhere);
             }
             return SqlHelper.ExecuteDataset(strSql.ToString());
         }
-
-        /// <summary>
-        /// 获取数据列表 
-        /// </summary>
-        public DataSet GetListWithDrugName(string strWhere)
-        {
-            StringBuilder strSql = new StringBuilder();
-            strSql.Append("select PackageTypeNo,DrugNo,Count,DrugName,DrugSpec,Manufactory ");
-            strSql.Append(" FROM dbo.View_PackageContent ");
-            if (strWhere.Trim() != "")
-            {
-                strSql.Append(" where " + strWhere);
-            }
-            return SqlHelper.ExecuteDataset(strSql.ToString());
-        }
-
 
         /// <summary>
         /// 获得前几行数据
@@ -205,8 +173,8 @@ namespace SNDMS.DAL
             {
                 strSql.Append(" top " + Top.ToString());
             }
-            strSql.Append(" PackageTypeNo,PackageTypeName ");
-            strSql.Append(" FROM PackageType ");
+            strSql.Append(" PackageTypeNo,DrugNo,Count ");
+            strSql.Append(" FROM PackageTypeDrug ");
             if (strWhere.Trim() != "")
             {
                 strSql.Append(" where " + strWhere);
@@ -221,7 +189,7 @@ namespace SNDMS.DAL
         public int GetRecordCount(string strWhere)
         {
             StringBuilder strSql = new StringBuilder();
-            strSql.Append("select count(1) FROM PackageType ");
+            strSql.Append("select count(1) FROM PackageTypeDrug ");
             if (strWhere.Trim() != "")
             {
                 strSql.Append(" where " + strWhere);
@@ -250,9 +218,9 @@ namespace SNDMS.DAL
             }
             else
             {
-                strSql.Append("order by T.PackageTypeNo desc");
+                strSql.Append("order by T.DrugNo desc");
             }
-            strSql.Append(")AS Row, T.*  from PackageType T ");
+            strSql.Append(")AS Row, T.*  from PackageTypeDrug T ");
             if (!string.IsNullOrEmpty(strWhere.Trim()))
             {
                 strSql.Append(" WHERE " + strWhere);
@@ -268,4 +236,3 @@ namespace SNDMS.DAL
         #endregion  Method
     }
 }
-
